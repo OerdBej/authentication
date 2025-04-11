@@ -6,15 +6,19 @@ import authRoutes from './routes/auth.js';
 dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
 app.get('/', (req, res) => {
   res.send('hello this world');
 });
 
+//allow us to parse the incoming JSON data from HTTP request
+app.use(express.json());
+
 //shortcut
 app.use('/api/auth', authRoutes);
 
-app.listen(3000, () => {
+app.listen(PORT, () => {
   connectDB();
-  console.log('server running');
+  console.log(`server running on port ${PORT}`);
 });
