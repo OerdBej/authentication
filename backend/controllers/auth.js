@@ -53,6 +53,34 @@ export const signup = async (req, res, next) => {
   }
 };
 
+export const verifyEmail = async (req, res, next) => {
+  //the code of the sent email
+  const { code } = req.body;
+  try {
+    const user = await User.findOne({
+      verificationToken: code,
+      verificationTokenExpiresAt: { $gt: Date.now() },
+    });
+
+    //if the user is not found or the code is invalid
+    if (!user) {
+      throw new Error('Invalid verification code');
+    }
+
+    //if the user is verified we delete the verification token because it is no longer needed
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    user.verificationTokenExpiresAt = undefined;
+    await user.save();
+
+    res
+      .status(200)
+      .json({ success: true, message: 'Email verified successfully' });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 export const login = (req, res, next) => {
   res.send('login');
 };
