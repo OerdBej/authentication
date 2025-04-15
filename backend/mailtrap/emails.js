@@ -1,23 +1,30 @@
-import { VERIFICATION_EMAIL_TEMPLATE } from './template_emails.js';
-export const sendVerificationEmail = async (email, verificationToken) => {
-  const recipient = [{ email }];
+import { MailtrapClient } from 'mailtrap';
+import dotenv from 'dotenv';
 
-  try {
-    const response = await mailtrapClient.send({
-      from: sender,
-      to: recipient,
-      subject: 'Verify your email',
-      html: VERIFICATION_EMAIL_TEMPLATE.replace(
-        '{verificationCode}',
-        verificationToken
-      ),
-      category: 'Email Verification',
-    });
+dotenv.config();
 
-    console.log('Email sent successfully', response);
-  } catch (error) {
-    console.error(`Error sending verification`, error);
+const TOKEN = process.env.MAILTRAP_TOKEN;
 
-    throw new Error(`Error sending verification email: ${error}`);
-  }
+const client = new MailtrapClient({
+  token: TOKEN,
+});
+
+const sender = {
+  email: 'hello@demomailtrap.co',
+  name: 'Oerd Bej',
 };
+const recipients = [
+  {
+    email: 'oerdbej@gmail.com',
+  },
+];
+
+client
+  .send({
+    from: sender,
+    to: recipients,
+    subject: 'You are awesome!',
+    text: 'Congrats for sending test email with Mailtrap!',
+    category: 'Integration Test',
+  })
+  .then(console.log, console.error);
