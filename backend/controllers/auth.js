@@ -3,6 +3,23 @@ import bcrypt from 'bcryptjs';
 import { generateTokenAndCookie } from '../utils/generateTokenAndCookie.js';
 import { sendVerificationEmail } from '../mailtrap/verification_emails.js';
 
+const validatePassword = (password) => {
+  const minLength = 5;
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+  
+  if (password.length < minLength) {
+    return 'Password must be at least 5 characters long';
+  }
+  if (!hasUpperCase) {
+    return 'Password must contain at least one uppercase letter';
+  }
+  if (!hasSpecialChar) {
+    return 'Password must contain at least one special character';
+  }
+  return null;
+};
+
 export const signup = async (req, res, next) => {
   const { email, password, name } = req.body;
 
@@ -11,6 +28,13 @@ export const signup = async (req, res, next) => {
       return res
         .status(400)
         .json({ success: false, message: 'All fields are required' });
+    }
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      return res
+        .status(400)
+        .json({ success: false, message: passwordError });
     }
 
     const userExist = await User.findOne({ email });
