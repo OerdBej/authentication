@@ -1,7 +1,10 @@
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import { generateTokenAndCookie } from '../utils/generateTokenAndCookie.js';
-import { sendVerificationEmail, sendWelcomeEmail } from '../mailtrap/verification_emails.js';
+import {
+  sendVerificationEmail,
+  sendWelcomeEmail,
+} from '../mailtrap/verification_emails.js';
 
 const validatePassword = (password) => {
   const minLength = 5;
@@ -81,19 +84,19 @@ export const verifyEmail = async (req, res) => {
 
   //the code of the sent email from user
   const { code } = req.body;
-  
+
   if (!code) {
-    return res.status(400).json({ 
-      success: false, 
+    return res.status(400).json({
+      success: false,
       message: 'Verification code is required',
-      receivedBody: req.body
+      receivedBody: req.body,
     });
   }
 
   try {
     console.log('Searching for user with verification code:', code);
     console.log('Current time:', Date.now());
-    
+
     //find the user by verification token but also with expiration date
     const user = await User.findOne({
       verificationToken: code,
@@ -102,10 +105,12 @@ export const verifyEmail = async (req, res) => {
 
     //if the user is not found or the code is invalid
     if (!user) {
-      console.log('No user found with this verification code or code has expired');
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid or expired verification code' 
+      console.log(
+        'No user found with this verification code or code has expired'
+      );
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired verification code',
       });
     }
 
@@ -125,10 +130,10 @@ export const verifyEmail = async (req, res) => {
       .json({ success: true, message: 'Email verified successfully' });
   } catch (error) {
     console.error('Verification error:', error);
-    res.status(400).json({ 
-      success: false, 
+    res.status(400).json({
+      success: false,
       message: error.message,
-      details: 'An error occurred during email verification'
+      details: 'An error occurred during email verification',
     });
   }
 };
@@ -138,5 +143,6 @@ export const login = (req, res, next) => {
 };
 
 export const logout = (req, res, next) => {
-  res.send('logout');
+  res.clearCookie('token');
+  res.status(200).json({ success: true, message: 'Logout successful' });
 };
