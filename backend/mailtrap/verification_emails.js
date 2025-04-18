@@ -1,5 +1,5 @@
 import { mailtrapClient, sender } from './emails.js';
-import { VERIFICATION_EMAIL_TEMPLATE } from './template_emails.js';
+import { VERIFICATION_EMAIL_TEMPLATE, WELCOME_EMAIL_TEMPLATE } from './template_emails.js';
 
 export const sendVerificationEmail = async (user, verificationToken) => {
   //the argument user is the user object that is created in the signup function

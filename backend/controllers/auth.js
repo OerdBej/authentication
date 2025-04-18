@@ -1,8 +1,7 @@
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import { generateTokenAndCookie } from '../utils/generateTokenAndCookie.js';
-import { sendVerificationEmail } from '../mailtrap/verification_emails.js';
-import { sendWelcomeEmail } from '../mailtrap/verification_emails.js';
+import { sendVerificationEmail, sendWelcomeEmail } from '../mailtrap/verification_emails.js';
 
 const validatePassword = (password) => {
   const minLength = 5;
@@ -53,7 +52,7 @@ export const signup = async (req, res, next) => {
       password: hashPassword,
       name,
       verificationToken,
-      resetPasswordExpiresAt: Date.now() + 24 * 60 * 60 * 1000, //24 hours
+      verificationTokenExpiresAt: Date.now() + 15 * 60 * 1000, // 15 minutes
     });
     await user.save();
 
@@ -76,11 +75,26 @@ export const signup = async (req, res, next) => {
   }
 };
 
-export const verifyEmail = async (req, res, next) => {
+export const verifyEmail = async (req, res) => {
+  console.log('Received request body:', req.body);
+  console.log('Content-Type:', req.headers['content-type']);
+
   //the code of the sent email from user
   const { code } = req.body;
-  //find the user by verification token but also with expiration date
+  
+  if (!code) {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'Verification code is required',
+      receivedBody: req.body
+    });
+  }
+
   try {
+    console.log('Searching for user with verification code:', code);
+    console.log('Current time:', Date.now());
+    
+    //find the user by verification token but also with expiration date
     const user = await User.findOne({
       verificationToken: code,
       verificationTokenExpiresAt: { $gt: Date.now() },
@@ -88,8 +102,14 @@ export const verifyEmail = async (req, res, next) => {
 
     //if the user is not found or the code is invalid
     if (!user) {
-      throw new Error('Invalid verification code');
+      console.log('No user found with this verification code or code has expired');
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid or expired verification code' 
+      });
     }
+
+    console.log('User found:', user.email);
 
     //if the user is verified we delete the verification token because it is no longer needed
     user.isVerified = true;
@@ -97,19 +117,19 @@ export const verifyEmail = async (req, res, next) => {
     user.verificationTokenExpiresAt = undefined;
     await user.save();
 
-    //creating a welcome email
+    //send welcome email
     await sendWelcomeEmail(user.email, user.name);
-    res.status(200).json({
-      success: true,
-      message: 'Email verified successfully',
-      //if we dont send a response
-      user: {
-        ...user._doc,
-        password: undefined,
-      },
-    });
+
+    res
+      .status(200)
+      .json({ success: true, message: 'Email verified successfully' });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    console.error('Verification error:', error);
+    res.status(400).json({ 
+      success: false, 
+      message: error.message,
+      details: 'An error occurred during email verification'
+    });
   }
 };
 
