@@ -138,7 +138,17 @@ export const verifyEmail = async (req, res) => {
   }
 };
 
-export const login = (req, res, next) => {
+export const login = async (req, res, next) => {
+  const { email, password } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+  } catch (error) {}
   res.send('login');
 };
 
