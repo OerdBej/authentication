@@ -2,12 +2,13 @@ import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import { generateTokenAndCookie } from '../utils/generateTokenAndCookie.js';
 import { sendVerificationEmail } from '../mailtrap/verification_emails.js';
+import { sendWelcomeEmail } from '../mailtrap/verification_emails.js';
 
 const validatePassword = (password) => {
   const minLength = 5;
   const hasUpperCase = /[A-Z]/.test(password);
   const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-  
+
   if (password.length < minLength) {
     return 'Password must be at least 5 characters long';
   }
@@ -32,9 +33,7 @@ export const signup = async (req, res, next) => {
 
     const passwordError = validatePassword(password);
     if (passwordError) {
-      return res
-        .status(400)
-        .json({ success: false, message: passwordError });
+      return res.status(400).json({ success: false, message: passwordError });
     }
 
     const userExist = await User.findOne({ email });
@@ -61,7 +60,7 @@ export const signup = async (req, res, next) => {
     //authenticate: creating the token and sending it to the user
     generateTokenAndCookie(res, user._id);
 
-    //send verification email
+    //send verification email 🔴
     await sendVerificationEmail(user, verificationToken);
 
     res.status(201).json({
@@ -78,8 +77,9 @@ export const signup = async (req, res, next) => {
 };
 
 export const verifyEmail = async (req, res, next) => {
-  //the code of the sent email
+  //the code of the sent email from user
   const { code } = req.body;
+  //find the user by verification token but also with expiration date
   try {
     const user = await User.findOne({
       verificationToken: code,
@@ -97,9 +97,17 @@ export const verifyEmail = async (req, res, next) => {
     user.verificationTokenExpiresAt = undefined;
     await user.save();
 
-    res
-      .status(200)
-      .json({ success: true, message: 'Email verified successfully' });
+    //creating a welcome email
+    await sendWelcomeEmail(user.email, user.name);
+    res.status(200).json({
+      success: true,
+      message: 'Email verified successfully',
+      //if we dont send a response
+      user: {
+        ...user._doc,
+        password: undefined,
+      },
+    });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
