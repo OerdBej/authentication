@@ -148,8 +148,30 @@ export const login = async (req, res, next) => {
         message: 'User not found',
       });
     }
-  } catch (error) {}
-  res.send('login');
+    //compare the password between user and password
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+    if (!isPasswordMatch) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid password',
+      });
+    }
+
+    generateTokenAndCookie(res, user._id);
+    user.lastLogin = new Date();
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Login successful',
+      user: {
+        ...user._doc,
+        password: undefined,
+      },
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
 };
 
 export const logout = (req, res, next) => {
