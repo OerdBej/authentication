@@ -178,3 +178,19 @@ export const logout = (req, res, next) => {
   res.clearCookie('token');
   res.status(200).json({ success: true, message: 'Logout successful' });
 };
+
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
