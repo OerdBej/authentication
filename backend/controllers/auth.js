@@ -1,6 +1,7 @@
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import { generateTokenAndCookie } from '../utils/generateTokenAndCookie.js';
+import crypto from 'crypto';
 import {
   sendVerificationEmail,
   sendWelcomeEmail,
@@ -189,6 +190,16 @@ export const forgotPassword = async (req, res) => {
         success: false,
         message: 'User not found',
       });
+      const resetToken = crypto.randomBytes(20).toString('hex');
+      const resetTokenExpiresAt = Date.now() + 3600000; // 1 hour
+
+      //saving the reset token to the user
+      user.resetToken = resetToken;
+      user.resetTokenExpiresAt = resetTokenExpiresAt;
+      await user.save();
+
+      //send the email for the reset email - template free from mailtrap - useremail / and the tooken
+      await sendPasswordResetEmail(user, resetToken);
     }
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
