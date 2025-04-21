@@ -1,11 +1,12 @@
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import { generateTokenAndCookie } from '../utils/generateTokenAndCookie.js';
-import { sendPasswordResetEmail } from '../mailtrap/verification_emails.js';
 import crypto from 'crypto';
 import {
   sendVerificationEmail,
   sendWelcomeEmail,
+  sendPasswordResetEmail,
+  sendResetEmail,
 } from '../mailtrap/verification_emails.js';
 
 const validatePassword = (password) => {
@@ -191,25 +192,25 @@ export const forgotPassword = async (req, res) => {
         success: false,
         message: 'User not found',
       });
-      const resetToken = crypto.randomBytes(20).toString('hex');
-      const resetTokenExpiresAt = Date.now() + 3600000; // 1 hour
-
-      //saving the reset token to the user
-      user.resetToken = resetToken;
-      user.resetTokenExpiresAt = resetTokenExpiresAt;
-      await user.save();
-
-      //send the email for the reset email - template free from mailtrap - useremail / and the tooken
-      await sendPasswordResetEmail(
-        user.email,
-        `${CLIENT_URL}/reset-password/${resetToken}`
-      );
-
-      res.status(200).json({
-        success: true,
-        message: 'Password reset email sent',
-      });
     }
+    const resetToken = crypto.randomBytes(20).toString('hex');
+    const resetTokenExpiresAt = Date.now() + 3600000; // 1 hour
+
+    //saving the reset token to the user
+    user.resetToken = resetToken;
+    user.resetTokenExpiresAt = resetTokenExpiresAt;
+    await user.save();
+
+    //send the email for the reset email - template free from mailtrap - useremail / and the tooken
+    await sendPasswordResetEmail(
+      user.email,
+      `${process.env.CLIENT_URL}/reset-password/${resetToken}`
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset email sent',
+    });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
