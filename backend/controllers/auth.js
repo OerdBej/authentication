@@ -197,8 +197,8 @@ export const forgotPassword = async (req, res) => {
     const resetTokenExpiresAt = Date.now() + 3600000; // 1 hour
 
     //saving the reset token to the user
-    user.resetToken = resetToken;
-    user.resetTokenExpiresAt = resetTokenExpiresAt;
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpiresAt = resetTokenExpiresAt;
     await user.save();
 
     //send the email for the reset email - template free from mailtrap - useremail / and the tooken
@@ -221,8 +221,8 @@ export const resetPassword = async (req, res) => {
     const { token } = req.params;
     const { password } = req.body;
     const user = await User.findOne({
-      resetToken: token,
-      resetTokenExpiresAt: { $gt: Date.now() },
+      resetPasswordToken: token,
+      resetPasswordExpiresAt: { $gt: Date.now() },
     });
     if (!user) {
       return res.status(400).json({
@@ -234,8 +234,8 @@ export const resetPassword = async (req, res) => {
     //update the password if its true: hash the password with same salt
     const hashedPassword = await bcrypt.hash(password, 10);
     user.password = hashedPassword;
-    user.resetToken = undefined;
-    user.resetTokenExpiresAt = undefined;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpiresAt = undefined;
     await user.save();
 
     //send reset email to the user = create to the mailtrap
