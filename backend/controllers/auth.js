@@ -1,7 +1,7 @@
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import { generateTokenAndCookie } from '../utils/generateTokenAndCookie.js';
-import { sendPasswordResetEmail } from '../mailtrap/emails.js';
+import { sendPasswordResetEmail } from '../mailtrap/verification_emails.js';
 import crypto from 'crypto';
 import {
   sendVerificationEmail,
@@ -236,5 +236,15 @@ export const resetPassword = async (req, res) => {
     user.resetPasswordToken = undefined;
     user.resetPasswordExpiresAt = undefined;
     await user.save();
-  } catch (error) {}
+
+    //send reset email to the user = create to the mailtrap
+    await sendResetEmail(user.email);
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset successfully',
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
 };
