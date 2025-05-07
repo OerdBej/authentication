@@ -1,6 +1,20 @@
 import { motion } from 'framer-motion';
 
-const GlowingCircles = ({ color, size, top, left, delay }) => {
+interface GlowingCirclesProps {
+  color: string;
+  size: string;
+  top: string;
+  left: string;
+  delay: number;
+}
+
+const GlowingCircles: React.FC<GlowingCirclesProps> = ({
+  color,
+  size,
+  top,
+  left,
+  delay,
+}) => {
   return (
     <motion.div
       style={{ top, left }}
