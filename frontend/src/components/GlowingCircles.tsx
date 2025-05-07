@@ -4,7 +4,7 @@ const GlowingCircles = ({ color, size, top, left, delay }) => {
   return (
     <motion.div
       style={{ top, left }}
-      className={`absolute rounded-full ${color} ${size} opacity-40 blur-3xl shadow-xl shadow-yellow-300/50`}
+      className={`absolute rounded-full ${color} ${size} opacity-20 blur-xl`}
       animate={{
         y: ['0%', '100%', '0%'],
         x: ['0%', '100%', '0%'],
