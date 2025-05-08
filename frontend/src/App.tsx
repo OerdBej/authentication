@@ -1,5 +1,22 @@
 import type { FC } from 'react';
 import GlowingCircles from './components/GlowingCircles';
+import { Routes, Route } from 'react-router-dom';
+import LoginPage from './components/pages/LoginPage';
+import SignUpPage from './components/pages/SignUpPage';
+
+// Home page component
+const HomePage: FC = () => {
+  return (
+    <div>
+      <h2 className='text-2xl font-semibold text-white text-center mb-6'>
+        Welcome to the Authentication App
+      </h2>
+      <p className='text-gray-300 text-center'>
+        Please sign up or log in to access your account.
+      </p>
+    </div>
+  );
+};
 
 const App: FC = () => {
   return (
@@ -29,10 +46,15 @@ const App: FC = () => {
 
       {/* Main content */}
       <div className='relative z-10 container mx-auto px-4 py-12'>
-        <h1 className='text-4xl font-bold text-white text-center'>
+        <h1 className='text-4xl font-bold text-white text-center mb-8'>
           Authentication App
         </h1>
-        {/* Your auth components will go here */}
+        {/* Routes for different pages */}
+        <Routes>
+          <Route path='/' element={<HomePage />} />
+          <Route path='/signup' element={<SignUpPage />} />
+          <Route path='/login' element={<LoginPage />} />
+        </Routes>
       </div>
     </div>
   );
